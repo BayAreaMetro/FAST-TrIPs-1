@@ -6,18 +6,12 @@
 #   Writes ft_input_stops.dat, ft_input_trips.dat, ft_input_routes.dat, ft_input_stopTimes.dat, ft_input_shapes.dat
 ###################################################################################
 import datetime
+import os
 import sys
 import pandas as pd
 import numpy as np
 import json
 ###################################################################################
-
-year=int(raw_input("Please enter year (yyyy): "))
-month=int(raw_input("Please enter month (mm): "))
-day=int(raw_input("Please enter day (dd): "))
-date = year*10000 + month*100 + day
-dayOfWeek = datetime.date(year, month, day).isoweekday()
-###############################################################################
 
 
 def make_sequence_col(data_frame, sort_list, group_by_col, seq_col):
@@ -59,7 +53,14 @@ def rename_fields(data_frame, table_name):
 with open('config.json', 'r') as f:
     config = json.load(f)
 
-df_calendar = pd.read_csv('calendar.txt')
+year  = config['service_date']['year']
+month = config['service_date']['month']
+day   = config['service_date']['day']
+date  = year*10000 + month*100 + day
+dayOfWeek = datetime.date(year, month, day).isoweekday()
+
+gtfs_dir = config['gtfs_dir']
+df_calendar = pd.read_csv(os.path.join(gtfs_dir,'calendar.txt'))
 df_calendar = df_calendar.query(str(date) + ' >= start_date and ' + str(date) + ' <= end_date')
 #if date >= df_calendar['start_date'].min() and date <= df_calendar['end_date'].max():
 if df_calendar.empty:
@@ -71,7 +72,7 @@ else:
     service = list(df_selected_service['service_id'])
     print service
 
-df_trips = pd.read_csv('trips.txt')
+df_trips = pd.read_csv(os.path.join(gtfs_dir,'trips.txt'))
 df_trips = df_trips[df_trips['service_id'].isin(service)]
 
 
@@ -81,12 +82,12 @@ routeIds = np.unique(df_trips['route_id'])
 shapeIds = np.unique(df_trips['shape_id'])
 
 #routes
-df_routes = pd.read_csv('routes.txt')
+df_routes = pd.read_csv(os.path.join(gtfs_dir,'routes.txt'))
 df_routes = df_routes[df_routes['route_id'].isin(routeIds)]
 df_routes['route_long_name'].fillna('_', inplace=True)
 
 #stop_times
-df_stop_times = pd.read_csv('stop_times.txt')
+df_stop_times = pd.read_csv(os.path.join(gtfs_dir,'stop_times.txt'))
 df_stop_times = df_stop_times[df_stop_times['trip_id'].isin(tripIds)]
 
 #remove ':' from time fields:
@@ -99,11 +100,11 @@ stopIds = np.unique(df_stop_times['stop_id'])
 #df_stop_times['arrival_time'] = df_stop_times['arrival_time'].map(lambda x: x.lstrip(':').rstrip('aAbBcC'))
 
 #stops
-df_stops = pd.read_csv('stops.txt')
+df_stops = pd.read_csv(os.path.join(gtfs_dir,'stops.txt'))
 df_stops = df_stops[df_stops['stop_id'].isin(stopIds)]
 
 #shapes
-df_shapes = pd.read_csv('shapes.txt')
+df_shapes = pd.read_csv(os.path.join(gtfs_dir,'shapes.txt'))
 df_shapes = df_shapes[df_shapes['shape_id'].isin(shapeIds)]
 
 
