@@ -22,6 +22,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -------------------------------------------------------*/
 
+#include <cstdlib>
 #include "ft_stop.h"
 #include "ft_route.h"
 #include "ft_trip.h"
