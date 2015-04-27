@@ -348,17 +348,17 @@ int		printPassengerPaths(){
 	int									noOfPassengers, tmpMode, tmpStatus;
 	double								tmpPAT;
 	string								fileStr, tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
-	map<string,passenger*>::iterator	tmpPassengerIter;
+	list<passenger*>::iterator        	tmpPassengerListIter;
 	passenger*							passengerPntr;
 
 	noOfPassengers = 0;
 	ofstream	outFile;
 	outFile.open("ft_output_passengerPaths.dat");
 	outFile <<"passengerId\tmode\toriginTaz\tdestinationTaz\tstartTime\tboardingStops\tboardingTrips\talightingStops\twalkingTimes"<<endl;
-	for(tmpPassengerIter=passengerSet.begin();tmpPassengerIter!=passengerSet.end();tmpPassengerIter++){
-		tmpPassengerId = (*tmpPassengerIter).first;
+	for(tmpPassengerListIter=passengerList.begin();tmpPassengerListIter!=passengerList.end();tmpPassengerListIter++){
 		passengerPntr = NULL;
-		passengerPntr = passengerSet[tmpPassengerId];
+		passengerPntr = *tmpPassengerListIter;
+		tmpPassengerId = passengerPntr->getPassengerId();
 		tmpMode = passengerPntr->getMode();
 		tmpOriginTaz = passengerPntr->getOriginTAZ();
 		tmpDestinationTaz = passengerPntr->getDestinationTAZ();
