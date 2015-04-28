@@ -383,7 +383,7 @@ int		printPassengerTimes(){
 
 	ofstream outFile2;
 	outFile2.open("ft_output_passengerTimes.dat");
-	outFile2 <<"passengerId\tmode\toriginTAz\tdestinationTaz\tstartTime\tendTime\tarrivalTimes\tboardingTimes\talightingTimes\ttravelCost"<<endl;
+	outFile2 <<"passengerId\tmode\toriginTaz\tdestinationTaz\tstartTime\tendTime\tarrivalTimes\tboardingTimes\talightingTimes\ttravelCost"<<endl;
 
 	noOfPassengers = 0;
 	for(tmpPassengerListIter=passengerList.begin();tmpPassengerListIter!=passengerList.end();tmpPassengerListIter++){
