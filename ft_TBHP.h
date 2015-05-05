@@ -569,10 +569,10 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 			tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
             sprintf(chr,"%d",int(100*tmpStartTime));
             tmpIn = string(chr);
-            tmpStrLen = tmpStr.length();
-			tmpPath = tmpStr.substr(0,max(0,tmpStrLen-2)) + ".";
+            tmpStrLen = tmpIn.length();
+			tmpPath = tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
 			if(tmpStrLen<2)			tmpPath = tmpPath + "0";
-			tmpPath = tmpPath + tmpStr.substr(max(0,tmpStrLen-2),2);
+			tmpPath = tmpPath + tmpIn.substr(max(0,tmpStrLen-2),2);
 		}
 		if(tmpCurrentTrip=="Egress"){
 			tmpAccessLink = tmpNewStop + "," + tmpCurrentStop;		
