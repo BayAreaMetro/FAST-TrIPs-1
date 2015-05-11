@@ -11,3 +11,6 @@ ft_input_transfers.dat
 
 # test dirs
 pax*
+
+# Output dir
+Output
