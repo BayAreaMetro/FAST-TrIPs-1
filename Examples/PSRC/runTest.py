@@ -40,7 +40,7 @@ if __name__ == '__main__':
     # Create truncated demand
     demand_in   = open(os.path.join("Input" ,"ft_input_demand.dat"))
     demand_out  = open(os.path.join(test_dir, "ft_input_demand.dat"), 'w')
-    for pax in range(args.num_passengers):
+    for pax in range(args.num_passengers+1):
         line = demand_in.readline()
         demand_out.write(line)
     demand_in.close()
