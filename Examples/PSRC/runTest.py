@@ -40,8 +40,11 @@ if __name__ == '__main__':
     # Create truncated demand
     demand_in   = open(os.path.join("Input" ,"ft_input_demand.dat"))
     demand_out  = open(os.path.join(test_dir, "ft_input_demand.dat"), 'w')
+    demand_pat  = re.compile(r"(.*\t.*\t.*\t.*\t.*\t)(1|2)(\t.*)")
     for pax in range(args.num_passengers+1):
         line = demand_in.readline()
+        # make every other trip inbound rather than outbound
+        if pax % 2 == 1: line = demand_pat.sub(r"\g<1>2\g<3>",line)
         demand_out.write(line)
     demand_in.close()
     demand_out.close()
