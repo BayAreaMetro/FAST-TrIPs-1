@@ -60,12 +60,12 @@ int		initializeSimulatoin(){
 int		createPassengers(int _t1, int _t2){
 	string								buf, tmpPassengerId, tmpVehicleId;
 	int									tmpPassengerStatus, tmpStartTime, noOfPassengerCreated;
-	map<string,passenger*>::iterator	tmpPassengerIter;
+	list<passenger*>::iterator          tmpPassengerListIter;
 	passenger*							passengerPntr;
 
 	noOfPassengerCreated = 0;
-	for(tmpPassengerIter=passengerSet.begin();tmpPassengerIter!=passengerSet.end();tmpPassengerIter++){
-		passengerPntr = (*tmpPassengerIter).second;
+    for(tmpPassengerListIter=passengerList.begin();tmpPassengerListIter!=passengerList.end();tmpPassengerListIter++){
+		passengerPntr = *tmpPassengerListIter;
         tmpPassengerStatus = passengerPntr->getPassengerStatus();
 		tmpStartTime = 60 * passengerPntr->getStartTime();
 		if (tmpPassengerStatus==0 && tmpStartTime >= _t1 && tmpStartTime < _t2){

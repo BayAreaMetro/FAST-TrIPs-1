@@ -595,6 +595,7 @@ string		getBackwardPath(string _origin, string _destination, double _PDT, double
 int	disaggregateDeterministicAssignment(int _iter, int _timeBuff, int _numThreads){
 	int								k, numThreads, tmpNumPassengers, tmpNumPaths;
     double                          startTime, endTime, cpuTime;
+    list<passenger*>::iterator      tmpPassengerListIter;
 
 	numThreads = _numThreads;
 	parallelizeStops(numThreads);
@@ -605,21 +606,17 @@ int	disaggregateDeterministicAssignment(int _iter, int _timeBuff, int _numThread
 	tmpNumPassengers = passengerSet.size();
 	tmpNumPaths = 0;
     startTime = clock()*1.0/CLOCKS_PER_SEC;
-	for(k=0;k<tmpNumPassengers;k++){
+    for(tmpPassengerListIter=passengerList.begin();tmpPassengerListIter!=passengerList.end();tmpPassengerListIter++){
 		int					threadId, tmpNumIterations, tmpTourHalf, tmpStatus;
 		string				tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
 		double				tmpPDT, tmpPAT;
 		passenger*			passengerPntr;
-		map<string,passenger*>::iterator	tmpPassengerIter;
 
-		threadId = 0;
-		tmpPassengerIter = passengerSet.begin();
-		advance(tmpPassengerIter, k);
-		if(tmpPassengerIter==passengerSet.end())	continue;
-
-		tmpPassengerId = (*tmpPassengerIter).first;
+        threadId = 0;
 		passengerPntr = NULL;
-		passengerPntr = passengerSet[tmpPassengerId];
+		passengerPntr = *tmpPassengerListIter;
+        tmpPassengerId = passengerPntr->getPassengerId();
+
 		tmpOriginTaz =passengerPntr->getOriginTAZ();
 		tmpDestinationTaz = passengerPntr->getDestinationTAZ();
 		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end())	continue;
