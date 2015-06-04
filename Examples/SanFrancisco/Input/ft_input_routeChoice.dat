@@ -1,0 +1,12 @@
+Value	:Parameter (unit: min)
+1.0		:in-vehicle time
+1.77	:waiting time
+3.93	:access walking time
+3.93	:egress walking time
+3.93	:transfer walking time
+47.73	:transfer penalty in minute
+0.0		:schedule delay (a parameter between 0 and 1)
+0.0		:fare in dollar per boarding (with no transfer credit)
+999     :VOT in Dollar per hour (generic parameter)
+1.0		:theta
+0		:Capacity Constraint

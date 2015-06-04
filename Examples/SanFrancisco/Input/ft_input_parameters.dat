@@ -1,10 +1,9 @@
-1	:Number of Threads
-2	:MSA(1) vs Simulation-based(2) vs Learning-based(3) Assignment
-1	:Deterministic(1) vs Stochastic(2) Path Model
-20	:Maximum Number of Assignment Iterations (0 for One-Shot)
-1	:Switch for Simulation (has to be on before full development)
-1	:Switch for Printing Detailed Outputs
-1	:Termination Gap(%)
-30	:Time Buffer for Path Algorithm (typically 30 min)
-0	:Switch to Use Transit Vehicle Trajectories Instead of Schedule
-1	:Switch to Use Assigned Passengers
+1   :Number of Iterations
+1   :No Assignment(0), Deterministic Assignment(1), Stochastic Assignment(2)
+1   :Switch for Simulation
+1   :Switch for Printing Detailed Outputs (E.g passenger trajectories)
+30  :Time Buffer for Path Algorithm (typically 30 min)
+0   :Switch to Use Transit Vehicle Trajectories Instead of Schedule (Not Available)
+0   :Switch to Produce Skim Table (Not Available)
+300 :Beginning of the time period for all-to-all skim (min)
+600 :End of the time period for all-to-all skim (min)
