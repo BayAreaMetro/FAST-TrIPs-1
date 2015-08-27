@@ -625,6 +625,7 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads){
 	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;;
+	list<passenger*>::iterator        	tmpPassengerListIter;
 
 	numThreads = _numThreads;
 	parallelizeStops(numThreads);
@@ -635,21 +636,16 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 	tmpNumPassengers = passengerSet.size();
 	tmpNumPaths = 0;
     startTime = clock()*1.0/CLOCKS_PER_SEC;
-	for(k=0;k<tmpNumPassengers;k++){
+	for(tmpPassengerListIter=passengerList.begin();tmpPassengerListIter!=passengerList.end();tmpPassengerListIter++){
 		int					                threadId, tmpNumIterations, tmpTourHalf, tmpStatus, m;
 		string				                tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
 		double				                tmpPDT, tmpPAT;
 		passenger*			                passengerPntr;
-		map<string,passenger*>::iterator	tmpPassengerIter;
 
-		threadId = 0;
-		tmpPassengerIter = passengerSet.begin();
-		advance(tmpPassengerIter, k);
-		if(tmpPassengerIter==passengerSet.end())	continue;
-
-		tmpPassengerId = (*tmpPassengerIter).first;
 		passengerPntr = NULL;
-		passengerPntr = passengerSet[tmpPassengerId];
+		passengerPntr = *tmpPassengerListIter;
+		tmpPassengerId = passengerPntr->getPassengerId();
+
 		tmpOriginTaz =passengerPntr->getOriginTAZ();
 		tmpDestinationTaz = passengerPntr->getDestinationTAZ();
 		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end())	continue;
@@ -670,6 +666,7 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 		tmpTourHalf = passengerPntr->getTourHalf();
 		if(tmpTourHalf==1){
 			tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff);
+			passengerPntr->setRandSeed();
 			m = 0;
 			while(1){
 				tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT);
@@ -680,6 +677,7 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 			}
 		}else if(tmpTourHalf==2){
 			tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff);
+			passengerPntr->setRandSeed();
 			m = 0;
 			while(1){
 				tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT);

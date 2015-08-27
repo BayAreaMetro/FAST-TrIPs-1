@@ -41,6 +41,7 @@ protected:
 	double				passengerPDT;
 	double				passengerPAT;
 	string				passengerTazTime;
+	int                 passengerPathId;
 
 	//Simulation
 	string				assignedPath;
@@ -64,7 +65,7 @@ public:
 	passenger(){}
 	~passenger(){}
 
-	void			initializePassenger(string _passengerStr);
+	void			initializePassenger(string _passengerStr, int _pathId);
 	string			getPassengerString();
 	string			getPassengerId();
 	string			getOriginTAZ();
@@ -79,6 +80,7 @@ public:
 	//For Assignment
 	void			setAssignedPath(string _tmpPath);
 	string			getAssignedPath();
+	void			setRandSeed();
 
 	//For Simulation
 	void			resetPathInfo();
@@ -127,6 +129,7 @@ int			readPassengers(){
 		cerr << "Unable to open file ft_input_demand.dat";
 		exit(1);
 	}
+	int path_id = 0; // for compat with fast-trips, unique per path (not nec the same as p)
 	getline(inFile,tmpIn);
 	while (!inFile.eof()){
 		buf.clear();
@@ -143,7 +146,8 @@ int			readPassengers(){
 		tmpPassengerPntr = new passenger;
 		passengerSet[tmpPassengerId] = tmpPassengerPntr;
 		passengerList.push_back(tmpPassengerPntr);
-		passengerSet[tmpPassengerId]->initializePassenger(tmpIn);
+		passengerSet[tmpPassengerId]->initializePassenger(tmpIn, path_id);
+		path_id++;
 	}
 	inFile.close();
 	return passengerSet.size();
@@ -182,7 +186,7 @@ int			readExistingPaths(){
 	return tmpNumPaths;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-void		passenger::initializePassenger(string _tmpIn){
+void		passenger::initializePassenger(string _tmpIn, int _pathId){
 	string				buf, tmpStr;
 	vector<string>		tokens;
 	char				chr[99];
@@ -214,6 +218,7 @@ void		passenger::initializePassenger(string _tmpIn){
 	}
 	passengerId = "p";
 	passengerId.append(tokens[0]);
+	passengerPathId = _pathId;
 
 	passengerStatus = -1;
 	experiencedCost = 999999;
@@ -248,6 +253,9 @@ void		passenger::setAssignedPath(string _tmpPath){
 }
 string		passenger::getAssignedPath(){
 	return this->assignedPath;
+}
+void		passenger::setRandSeed() {
+	srand(this->passengerPathId);
 }
 int			passenger::getTimePeriod(){
 	return this->passengerTimePeriod;
