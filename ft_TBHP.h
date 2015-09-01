@@ -24,10 +24,11 @@ limitations under the License.
 
 #include <time.h>
 #include <stdlib.h>
+#include <iomanip>      // std::setprecision
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
+int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, bool trace){
 	int						i, j, numIterations, permanentLabel, tmpTransferStop;
 	int						tmpNumAccess, tmpNumTransfers, tmpSeqNum, tmpMaxSeq;
 	double					tmpCurrentLabel, tmpEarliestArrival, tmpOldLabel, tmpNewLabel, tmpNewCost, tmpNonWalkLabel;
@@ -42,6 +43,8 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
 	list<trip*>::iterator	tmpTripListIter;
 	trip*					tmpTripPntr;
 	priority_queue<string>	stopQueue;
+
+    if (trace) { cout << "origin: " << _origin << ", preferred_time: " << _PDT << endl; }
 
 	//Initialization
 	for(tmpTazListIter=tazList.begin();tmpTazListIter!=tazList.end();tmpTazListIter++){
@@ -76,6 +79,13 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
         sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
         tmpQueuvalue = string(chr);
         tmpStr.resize(6-tmpQueuvalue.length(),'0');
+        if (trace) {
+        	cout << "access stop = " << tmpNewStop
+            	 << "  tmpNewCost = " << fixed << setprecision(4) << tmpNewCost
+             	 << "  tmpNewArrival = " << setfill('0') << setw(2) << int(tmpNewArrival/60.0)
+             	 << ":" << setfill('0') << setw(2) << int(tmpNewArrival) % 60
+             	 << ":" << setfill('0') << setw(2) << int(60*(tmpNewArrival - int(tmpNewArrival))) << endl;
+        }
 		tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
 		stopQueue.push(tmpQueuvalue);
     }
@@ -99,7 +109,17 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
 		}else{
 			tmpStopPntr->setStrategyPermanentLabel();
 		}
-		
+
+		if (trace) {
+        	cout << "numIterations = " << numIterations
+        	     << "; stop  "<< tmpCurrentStop
+        	     << "; label " << tmpCurrentLabel
+        	     << "; nonwalk " << tmpNonWalkLabel
+        	     << "; earlyarr " << tmpEarliestArrival
+        	     << "; mode = " << tmpCurrentMode
+        	     << "; tmpTransferStop = " << tmpTransferStop << endl;
+        }
+
 		//Update by Transfers
 		if(tmpCurrentMode!="Access"){
 			tmpNumTransfers = tmpStopPntr->getNumTransfers();
@@ -116,6 +136,16 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
 				}
 				if(tmpNewLabel < 0){
 					cout <<"Error - Negative Label - 1"<<endl;
+				}
+				if (trace) {
+					cout << "  transfer i=" << setw(2) << setfill(' ') << i
+						 << "; stop " << setw(7) << setfill(' ') << tmpNewStop
+						 << "; label " << fixed << setprecision(4) << tmpNewLabel
+						 << "; xfertime " << tmpTransferTime
+						 << "; arrival " << tmpEarliestArrival + tmpTransferTime
+						 << "; cost " << fixed << setprecision(4) << tmpNewCost
+					     << "; oldlabel " << tmpOldLabel
+						 << endl;
 				}
 				if(tmpNewLabel < 999 && tmpNewLabel > 0){
 					tmpNewArrival = tmpEarliestArrival + tmpTransferTime;
@@ -175,6 +205,17 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
 					cout <<"Error - Negative Label - 2"<<endl;
 				}
 				if(tmpNewLabel < 999 && tmpNewLabel > 0){
+					if (trace) {
+						cout << "  trip     j=" << setw(2) << setfill(' ') << j
+							 << "; stop " << setw(7) << setfill(' ') << tmpNewStop
+							 << "; label " << fixed << setprecision(4) << tmpNewLabel
+							 << "; arrival " << tmpNewArrival
+						     << "; mode " << tmpNewMode
+							 << "; trip " << tmpTrip
+							 << "; cost " << fixed << setprecision(4) << tmpNewCost
+							 << "; departure " << tmpNewDeparture
+						 	 << endl;
+					}
 					stopSet[tmpNewStop]->forwardStrategyUpdate(tmpNewLabel, tmpNewArrival, tmpTrip, tmpCurrentStop, tmpNewCost, tmpNewDeparture);
                     sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
                     tmpQueuvalue = string(chr);
@@ -210,6 +251,17 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
 				cout <<"Error - Negative Label - 3"<<endl;
 			}
 			if(tmpNewLabel < 999 && tmpNewLabel > 0){
+				if (trace) {
+					cout << "  taz = " << tmpTazPntr->getTazId()
+						 << "; stop " << setw(7)  << tmpNewStop
+						 << "; label " << fixed << setprecision(4) << tmpNewLabel
+						 << "; arrival " << tmpNewArrival
+						 << "; cost " << fixed << setprecision(4) << tmpNewCost
+						 << "; accesst " << tmpAccessTime
+						 << "; nonwalk " << tmpNonWalkLabel
+						 << "; oldlabel " << tmpOldLabel
+						 << endl;
+				}
 				tmpTazPntr->forwardStrategyUpdate(tmpNewLabel, tmpNewArrival, tmpNewStop, tmpNewCost);
 			}
 		}
@@ -217,7 +269,7 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer){
 	return numIterations;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
+int			backwardTBHP(string _destination, double _PAT, int _timeBuffer, bool trace){
 	int						i, j, numIterations, permanentLabel, tmpTransferStop;;
 	int						tmpNumAccess, tmpNumTransfers, tmpSeqNum;
 	double					tmpCurrentLabel, tmpLatestDeparture, tmpEarliestDeparture, tmpOldLabel, tmpNewLabel, tmpNewCost, tmpNonWalkLabel;
@@ -232,6 +284,8 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 	list<trip*>::iterator	tmpTripListIter;
 	trip*					tmpTripPntr;
 	priority_queue<string>	stopQueue;
+
+    if (trace) { cout << "destination: " << _destination << ", preferred_time: " << _PAT << endl; }
 
 	//Initialization
 	for(tmpTazListIter=tazList.begin();tmpTazListIter!=tazList.end();tmpTazListIter++){
@@ -266,7 +320,13 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 		sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
         tmpQueuvalue = string(chr);
         tmpStr.resize(6-tmpQueuvalue.length(),'0');
+        if (trace) {
+        	cout << "tmpStr=" << tmpStr 
+            	 << "  tmpQueuevalue=" << tmpQueuvalue
+             	 << "  tmpNewStop=" << tmpNewStop;
+        }
 		tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
+		if (trace) { cout << " -> " << tmpQueuvalue << endl; }
 		stopQueue.push(tmpQueuvalue);
 	}
 
@@ -286,11 +346,22 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 		permanentLabel = tmpStopPntr->getStrategyPermanentLabel();
 		tmpTransferStop = tmpStopPntr->getTransferStop();
 		if(permanentLabel==1 || tmpTransferStop==0){
+			// cout << "Continuing on stop " << tmpCurrentStop << "; permanentLabel=" << permanentLabel << "; tmpTransferStop=" << tmpTransferStop << endl;
 			continue;
 		}else{
 			tmpStopPntr->setStrategyPermanentLabel();
 		}
-		
+
+		if (trace) {
+        	cout << "numIterations = " << numIterations
+        	     << "; tmpCurrentStop = "<< tmpCurrentStop
+        	     << "; tmpCurrentLabel = " << tmpCurrentLabel
+        	     << "; tmpNonWalkLabel = " << tmpNonWalkLabel
+        	     << "; tmpLatestDeparture = " << tmpLatestDeparture
+        	     << "; tmpCurrentMode = " << tmpCurrentMode
+        	     << "; xferstop " << tmpTransferStop << endl;
+        }
+
 		//Update by Transfers
 		if(tmpCurrentMode!="Egress"){
 			tmpNumTransfers = tmpStopPntr->getNumTransfers();
@@ -307,6 +378,16 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 				}
 				if(tmpNewLabel < 0){
 					cout <<"Error - Negative Label - 1"<<endl;
+				}
+				if (trace) {
+					cout << "  transfer i=" << i
+						 << "; tmpNewStop=" << tmpNewStop
+					     << "; tmpOldLabel=" << tmpOldLabel
+						 << "; tmpNewLabel=" << tmpNewLabel
+						 << "; tmpTransferTime=" << tmpTransferTime
+						 << "; tmpNewDeparture=" << tmpNewDeparture
+						 << "; tmpNewCost=" << fixed << setprecision(4) << tmpNewCost
+						 << endl;
 				}
 				if(tmpNewLabel < 999 && tmpNewLabel > 0){
 					tmpNewDeparture = tmpLatestDeparture - tmpTransferTime;
@@ -364,6 +445,17 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 				if(tmpNewLabel < 0){
 					cout <<"Error - Negative Label - 2"<<endl;
 				}
+				if (trace) {
+					cout << "  trip j=" << j
+						 << "; tmpNewStop=" << tmpNewStop
+						 << "; tmpNewLabel=" << tmpNewLabel
+						 << "; tmpNewDeparture=" << tmpNewDeparture
+						 << "; tmpTrip=" << tmpTrip
+						 << "; tmpNewCost=" << tmpNewCost
+						 << "; tmpNewArrival=" << tmpNewArrival
+					     << "; tmpNewMode=" << tmpNewMode
+					 	 << endl;
+				}
 				if(tmpNewLabel < 999 && tmpNewLabel > 0){
 					stopSet[tmpNewStop]->backwardStrategyUpdate(tmpNewLabel, tmpNewDeparture, tmpTrip, tmpCurrentStop, tmpNewCost, tmpNewArrival);
                     sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
@@ -376,6 +468,7 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 			tmpTripPntr->setTripUsedBefore(0);
 		}
 		numIterations++;
+
 	}
 
 	//Connect to All Other TAZ Centroid
@@ -399,6 +492,17 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 			if(tmpNewLabel < 0){
 				cout <<"Error - Negative Label - 3"<<endl;
 			}
+			if (trace) {
+				cout << "  taz =" << tmpTazPntr->getTazId()
+					 << "; tmpNewStop=" << tmpNewStop
+					 << "; tmpNewLabel=" << tmpNewLabel
+					 << "; tmpNewDeparture=" << tmpNewDeparture
+					 << "; tmpNewCost=" << tmpNewCost
+					 << "; tmpAccessTime=" << tmpAccessTime
+					 << "; tmpNonWalkLabel=" << tmpNonWalkLabel
+					 << "; tmpOldLabel=" << tmpOldLabel
+					 << endl;
+			}
 			if(tmpNewLabel < 999 && tmpNewLabel > 0){
 				tmpTazPntr->backwardStrategyUpdate(tmpNewLabel, tmpNewDeparture, tmpNewStop, tmpNewCost);
 			}
@@ -407,7 +511,7 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer){
 	return numIterations;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-string		getForwardElementaryPath(string _destination, double _PAT){
+string		getForwardElementaryPath(string _destination, double _PAT, bool trace){
 	int					tmpStrLen;
 	string				tmpStr, tmpIn, tmpCurrentStop, tmpNewStop, tmpCurrentTrip, tmpAccessLink, tmpTransferLink, tmpLastTrip, tmpFirstTrip, tmpFirstStop;
 	double				tmpDepartureTime, tmpStartTime, tmpEndTime;
@@ -415,7 +519,8 @@ string		getForwardElementaryPath(string _destination, double _PAT){
 	vector<string>		tokens;
 	char				chr[99];
 
-	tmpIn = tazSet[_destination]->getForwardAssignedAlternative(1800);
+	tmpIn = tazSet[_destination]->getForwardAssignedAlternative(1800, trace);
+	// cout << "tmpIn = [" << tmpIn << "]" << endl;
 	if(tmpIn=="-101"){
 		//cout <<"C1"<<endl;
 		return "-101";
@@ -437,9 +542,15 @@ string		getForwardElementaryPath(string _destination, double _PAT){
 	tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(max(0,tmpStrLen-2),2);
 	tmpDepartureTime = tmpEndTime - accessTimes[tmpAccessLink];
 	tmpLastTrip = "Egress";
-	
+
 	while(1){
-		tmpIn = stopSet[tmpCurrentStop]->getForwardAssignedAlternative(tmpDepartureTime, tmpLastTrip);
+		tmpIn = stopSet[tmpCurrentStop]->getForwardAssignedAlternative(tmpDepartureTime, tmpLastTrip, trace);
+	    // cout << "tmpLastTrip = [" << tmpLastTrip
+	    //      << "] departure = [" << tmpDepartureTime
+	    //      << "] walk = [" << tmpWalkingTimes
+	    //      << "] tmpFirstStop = [" << tmpFirstStop << "]" << endl;
+     	// cout << "tmpIn = [" << tmpIn << "]" << endl;
+
 		if(tmpIn=="-101"){
 			//cout <<"C2"<<endl;
 			return "-101";
@@ -511,7 +622,7 @@ string		getForwardElementaryPath(string _destination, double _PAT){
 	//cout <<"C3"<<endl;
 	return "-101";
 }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-string		getBackwardElementaryPath(string _origin, double _PDT){
+string		getBackwardElementaryPath(string _origin, double _PDT, bool trace){
 	int					i, tmpStrLen;
 	string				tmpStr, tmpIn, tmpCurrentStop, tmpNewStop, tmpCurrentTrip, tmpAccessLink, tmpTransferLink, tmpLastTrip, tmpFirstTrip, tmpFirstStop;
 	double				tmpArrivalTime, tmpStartTime, tmpDepartureTime;
@@ -519,7 +630,8 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 	vector<string>		tokens;
 	char				chr[99];
 
-	tmpIn = tazSet[_origin]->getBackwardAssignedAlternative(0);
+	tmpIn = tazSet[_origin]->getBackwardAssignedAlternative(0, trace);
+	// cout << "tmpIn = [" << tmpIn << "]" << endl;
 	if(tmpIn=="-101"){
 		//cout <<"C1"<<endl;
 		return "-101";
@@ -544,10 +656,16 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 	if(tmpCurrentStop.substr(0,1)=="s"){
 		tmpFirstStop = tmpCurrentStop;
 	}
-	
+
 	i = 0;
 	while(1){
-		tmpIn = stopSet[tmpCurrentStop]->getBackwardAssignedAlternative(tmpArrivalTime, tmpLastTrip);
+		tmpIn = stopSet[tmpCurrentStop]->getBackwardAssignedAlternative(tmpArrivalTime, tmpLastTrip, trace);
+	    // cout << "tmpLastTrip = [" << tmpLastTrip
+	    //      << "] tmpArrivalTime = [" << tmpArrivalTime
+	    //      << "] tmpWalkingTimes = [" << tmpWalkingTimes
+	    //      << "] tmpFirstStop = [" << tmpFirstStop << "]" << endl;
+     	// cout << "tmpIn = [" << tmpIn << "]" << endl;
+
 		if(tmpIn=="-101"){
 			//cout <<"C2"<<endl;
 			return "-101";
@@ -626,6 +744,7 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;;
 	list<passenger*>::iterator        	tmpPassengerListIter;
+	string                              tracePassengerId("p1454412");
 
 	numThreads = _numThreads;
 	parallelizeStops(numThreads);
@@ -665,28 +784,29 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 		tmpPAT = passengerPntr->getPAT();
 		tmpTourHalf = passengerPntr->getTourHalf();
 		if(tmpTourHalf==1){
-			tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff);
+			tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff, tracePassengerId == tmpPassengerId);
 			passengerPntr->setRandSeed();
 			m = 0;
 			while(1){
-				tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT);
+				tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT, tracePassengerId == tmpPassengerId);
 				m++;
 				if(tmpPath!="-101" || m>1000){
 					break;
 				}
 			}
 		}else if(tmpTourHalf==2){
-			tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff);
+			tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff, tracePassengerId == tmpPassengerId);
 			passengerPntr->setRandSeed();
 			m = 0;
 			while(1){
-				tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT);
+				tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT, tracePassengerId == tmpPassengerId);
 				m++;
 				if(tmpPath!="-101" || m>1000){
 					break;
 				}
 			}
 		}
+		cout << "passenger " << tmpPassengerId << "; numIter " << tmpNumIterations << "; PDT " << tmpPDT << "; path = [" << tmpPath << "]" << endl;
 		if(tmpPath!="-101"){
 			passengerPntr->setAssignedPath(tmpPath);
 			tmpNumPaths++;

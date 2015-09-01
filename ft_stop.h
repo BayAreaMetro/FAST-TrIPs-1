@@ -32,6 +32,8 @@ limitations under the License.
 #include <set>
 #include <queue>
 #include <math.h>
+#include <iomanip>      // std::setprecision
+
 using namespace std;
 double		inVehTimeEqv, waitingEqv, originWalkEqv, destinationWalkEqv, transferWalkEqv, transferPenalty, scheduleDelayEqv, fare, VOT, theta, capacityConstraint;
 map<string,double>		availableCapacity;
@@ -128,8 +130,8 @@ public:
 	int					getStrategyPermanentLabel();
 	double				getForwardNonWalkLabel();
 	double				getBackwardNonWalkLabel();
-	string				getForwardAssignedAlternative(double _departureTime, string _lastTrip);
-	string				getBackwardAssignedAlternative(double _arrivalTime, string _lastTrip);
+	string				getForwardAssignedAlternative(double _departureTime, string _lastTrip, bool trace);
+	string				getBackwardAssignedAlternative(double _arrivalTime, string _lastTrip, bool trace);
 
 	//Path Backtracking
 	string				getPredecessor(int _threadId);
@@ -630,13 +632,20 @@ double	stop::getBackwardNonWalkLabel(){
 		return tmpNonWalkLabel;
 	}
 }
-string		stop::getForwardAssignedAlternative(double _departureTime, string _lastTrip){
+string		stop::getForwardAssignedAlternative(double _departureTime, string _lastTrip, bool trace=false){
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	double			tmpLogsum;
 	vector<string>	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr1[99], chr2[99];
 
+	if (trace) {
+		cout << "stop getForwardAssignedAlternative for stopId " << stopId
+		     << "; _departureTime = " << setfill('0') << setw(2) << int(_departureTime/60.0)
+    	     << ":" << setfill('0') << setw(2) << int(_departureTime) % 60
+    	     << ":" << setfill('0') << setw(2) << int(60*(_departureTime - int(_departureTime))) 
+    	     << "; _lastTrip = " << _lastTrip << endl;
+    }
 	if(stopArrivals.size()==0){
 		//cout <<"SC1"<<endl;
 		return "-101";
@@ -681,11 +690,18 @@ string		stop::getForwardAssignedAlternative(double _departureTime, string _lastT
         tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
+	if (trace) {
+		for (j=0;j<tmpAlternatives.size();j++) {
+			cout << "  j=" << j << "; prob=" << tmpAltProbabilities[j] << "; tmpAlternatives=" << tmpAlternatives[j] << endl;
+		}
+	}
 	if(tmpMaxProb<1){
 		//cout <<"SC3"<<endl;
 		return "-101";
 	}
-	tmpRandNum = rand()%tmpMaxProb;
+	tmpRandNum = rand();
+	if (trace) { cout << "  tmpRandNum=" << tmpRandNum << " -> " << tmpRandNum%tmpMaxProb << endl; }
+	tmpRandNum = tmpRandNum%tmpMaxProb;
 	for(j=0;j<tmpAlternatives.size();j++){
 		if(tmpRandNum <= tmpAltProbabilities[j]){
 			return tmpAlternatives[j];
@@ -694,13 +710,17 @@ string		stop::getForwardAssignedAlternative(double _departureTime, string _lastT
 	//cout <<"SC4"<<endl;
 	return "-101";
 }
-string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTrip){
+string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTrip, bool trace=false){
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	double			tmpLogsum;
 	vector<string>	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr1[99], chr2[99];
 
+	if (trace) {
+		cout << "stop getBackwardAssignedAlternative for stopId " << stopId
+		     << "; _arrivalTime = " << _arrivalTime << "; _lastTrip = " << _lastTrip << endl;
+	}
 	if(stopDepartures.size()==0){
 		//cout <<"SC1"<<endl;
 		return "-101";
@@ -745,11 +765,18 @@ string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTr
 		tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
+	if (trace) {
+		for (j=0;j<tmpAlternatives.size();j++) {
+			cout << "  j=" << j << "; prob=" << tmpAltProbabilities[j] << "; tmpAlternatives=" << tmpAlternatives[j] << endl;
+		}
+	}
 	if(tmpMaxProb<1){
 		//cout <<"SC3"<<endl;
 		return "-101";
 	}
-	tmpRandNum = rand()%tmpMaxProb;
+	tmpRandNum = rand();
+    if (trace) { cout << "  tmpRandNum=" << tmpRandNum << " -> " << tmpRandNum%tmpMaxProb << endl; }
+	tmpRandNum = tmpRandNum%tmpMaxProb;
 	for(j=0;j<tmpAlternatives.size();j++){
 		if(tmpRandNum <= tmpAltProbabilities[j]){
 			return tmpAlternatives[j];

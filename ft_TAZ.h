@@ -85,8 +85,8 @@ public:
 	void					forwardStrategyUpdate(double _label, double _arrival, string _predecessor, double _cost);
 	void					backwardStrategyUpdate(double _label, double _departure, string _successor, double _cost);
 	double					getStrategyLabel();
-	string					getForwardAssignedAlternative(double _departureTime);
-	string					getBackwardAssignedAlternative(double _arrivalTime);
+	string					getForwardAssignedAlternative(double _departureTime, bool trace);
+	string					getBackwardAssignedAlternative(double _arrivalTime, bool trace);
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 map<string,taz*>			tazSet;
@@ -331,11 +331,13 @@ void		taz::backwardStrategyUpdate(double _label, double _departure, string _succ
 double		taz::getStrategyLabel(){
 	return this->tazStrategyLebel;
 }
-string		taz::getForwardAssignedAlternative(double _departureTime){
+string		taz::getForwardAssignedAlternative(double _departureTime, bool trace=false){
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	vector<string>	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr[99];
+
+	if (trace) { cout << "taz getForwardAssignedAlternative for tazId " << tazId << "; tazStrategyLebel = " << tazStrategyLebel << endl; }
 
 	if(tazArrivals.size()==0)		return "-101";
 	j=-1;
@@ -351,8 +353,15 @@ string		taz::getForwardAssignedAlternative(double _departureTime){
 		tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
+	if (trace) {
+		for (j=0;j<tmpAlternatives.size();j++) {
+			cout << "  j=" << j << "; prob=" << tmpAltProbabilities[j] << "; tmpAlternatives=" << tmpAlternatives[j] << endl;
+		}
+	}
 	if(tmpMaxProb==0)		return "-101";
-	tmpRandNum = rand()%tmpMaxProb;
+	tmpRandNum = rand();
+    if (trace) { cout << "  tmpRandNum=" << tmpRandNum << " -> " << tmpRandNum%tmpMaxProb << endl; }
+	tmpRandNum = tmpRandNum%tmpMaxProb;
 	for(j=0;j<tmpAlternatives.size();j++){
 		if(tmpRandNum <= tmpAltProbabilities[j]){
 			return tmpAlternatives[j];
@@ -360,12 +369,13 @@ string		taz::getForwardAssignedAlternative(double _departureTime){
 	}
 	return "-101";
 }
-string		taz::getBackwardAssignedAlternative(double _arrivalTime){
+string		taz::getBackwardAssignedAlternative(double _arrivalTime, bool trace=false){
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	vector<string>	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr[99];
 
+	if (trace) { cout << "taz getBackwardAssignedAlternative for tazId " << tazId << "; tazStrategyLebel = " << tazStrategyLebel << endl; }
 	if(tazDepartures.size()==0)		return "-101";
 	j=-1;
 	tmpMaxProb = 0;
@@ -380,8 +390,15 @@ string		taz::getBackwardAssignedAlternative(double _arrivalTime){
 		tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
+	if (trace) {
+		for (j=0;j<tmpAlternatives.size();j++) {
+			cout << "  j=" << j << "; prob=" << tmpAltProbabilities[j] << "; tmpAlternatives=" << tmpAlternatives[j] << endl;
+		}
+	}
 	if(tmpMaxProb==0)		return "-101";
-	tmpRandNum = rand()%tmpMaxProb;
+	tmpRandNum = rand();
+    if (trace) { cout << "  tmpRandNum=" << tmpRandNum << " -> " << tmpRandNum%tmpMaxProb << endl; }
+	tmpRandNum = tmpRandNum%tmpMaxProb;
 	for(j=0;j<tmpAlternatives.size();j++){
 		if(tmpRandNum <= tmpAltProbabilities[j]){
 			return tmpAlternatives[j];

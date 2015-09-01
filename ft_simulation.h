@@ -301,6 +301,14 @@ int		simulation(){
         eventList.pop_front();
         eventList.push_back(tmpEventStr);
     }
+
+    // print out available capacity
+    map<string,double>::iterator availCapIter;
+    cout << "availableCapacity ------------------" << endl;
+    for (availCapIter=availableCapacity.begin(); availCapIter!=availableCapacity.end(); availCapIter++) {
+    	cout << availCapIter->first << " -> " << availCapIter->second << endl;
+    }
+
     endTime = clock()*1.0/CLOCKS_PER_SEC;
     cpuTime = round(100 * (endTime - startTime))/100.0;
     cout <<counter<<" / "<<maxEvent<<" events simulated ; "<<"time elapsed: "<<cpuTime<<"\tseconds"<<endl;
