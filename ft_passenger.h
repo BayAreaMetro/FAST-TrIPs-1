@@ -67,6 +67,31 @@ protected:
     map<string,double>					pathUtility;
 	map<string,double>::iterator		pathIter2;
     map<string,int>                     pathCapacity;
+
+    // lmz: this is just for ordering paths so we process them in the same order as fast-trips code
+    typedef struct {
+    	vector<int> stops;
+    	vector<int> trips;
+    } PathCompat;
+
+    struct PathCompatCompare {
+    	// less than
+    	bool operator()(const PathCompat &path1, const PathCompat &path2) const {
+    		if (path1.stops.size() < path2.stops.size()) { return true;  }
+    		if (path1.stops.size() > path2.stops.size()) { return false; }
+    		// if number of stops matches, check the stop ids and trip id
+    		for (int ind=0; ind<path1.stops.size(); ++ind) {
+    			if (path1.stops[ind] < path2.stops[ind]) { return true;  }
+    			if (path1.stops[ind] > path2.stops[ind]) { return false; }
+    			if (path1.trips[ind] < path2.trips[ind]) { return true;  }
+    			if (path1.trips[ind] > path2.trips[ind]) { return false; }
+    		}
+    		return false;
+    	}
+    };
+
+    // store it here. PathCompat -> path string
+    map<PathCompat, string, struct passenger::PathCompatCompare> 			pathCompatMap;
     
 public:
 	passenger(){}
@@ -121,8 +146,8 @@ public:
     //path-based assignment
     void            resetPaths();
     void            addPaths(string _tmpPath);
-    void            analyzePaths();
-    string          assignPath();
+    void            analyzePaths(bool trace);
+    string          assignPath(bool trace);
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 map<string,passenger*>				passengerSet;
@@ -525,7 +550,7 @@ void    passenger::addPaths(string _tmpPath){
         pathSet[_tmpPath] = pathSet[_tmpPath] + 1;
     }
 }
-void    passenger::analyzePaths(){
+void    passenger::analyzePaths(bool trace){
 	//For Choice Set Attributes
     int                         n;
 	string					    buf, buf2;
@@ -536,8 +561,13 @@ void    passenger::analyzePaths(){
 	double					    NTR, IWT, IVT, TRT, ACD, EGD, TRD, ScDelay, FARE, tmpUtility;
 	string  					routeComb, tripComb, transferComb; //transferComb for capacity constraints
 
+	if (trace) {
+		cout << "analyzePaths --- pathSet.size()=" << pathSet.size() << endl;
+	}
     pathUtility.clear();
     pathCapacity.clear();
+    pathCompatMap.clear();
+
     for(pathIter=pathSet.begin();pathIter!=pathSet.end();pathIter++){
         buf.clear();
         tokens.clear();
@@ -557,11 +587,50 @@ void    passenger::analyzePaths(){
         tmpAlightings = tokens[3];
         tmpWalkings = tokens[4];
 
+        // lmz - do this to not drop precision
+        double start_time = tripSet[tmpTrips[0]]->getSchDepartureByStop(tmpBoardings[0]) - atof(tmpWalkings[0].c_str());
+        if (trace) {
+        	cout << "  pathIter=(\"" << pathIter->first << "\"," << pathIter->second << "), starttime=" << tmpStartTime << "; trips=[" ;
+            for (vector<string>::const_iterator si=tmpTrips.begin(); si != tmpTrips.end(); ++si) { cout << "'" << *si << "',"; }
+        	cout << "]; boardings=[";
+        	for (vector<string>::const_iterator si=tmpBoardings.begin(); si != tmpBoardings.end(); ++si) { cout << "'" << *si << "',"; }
+        	cout << "]; alightings=[";
+        	for (vector<string>::const_iterator si=tmpAlightings.begin(); si != tmpAlightings.end(); ++si) { cout << "'" << *si << "',"; }
+        	cout << "]; walkings=[";
+        	for (vector<string>::const_iterator si=tmpWalkings.begin(); si != tmpWalkings.end(); ++si) { cout << "'" << *si << "',"; }
+        	cout << "], start_time=" << start_time << endl;
+        }
+        // lmz - do this to process paths in an order consistent with fast-trips
+        PathCompat path_compat;
+        if (passengerTourHalf==1) {
+        	// origin to destination
+      		for (int ind=0; ind < tmpBoardings.size(); ++ind) {
+      			// boarding stop
+      			path_compat.stops.push_back(atoi(tmpBoardings[ind].substr(1,tmpBoardings[ind].length()-1).c_str()));
+      			path_compat.trips.push_back(atoi(tmpTrips[ind].substr(1,tmpTrips[ind].length()-1).c_str()));
+      			// alighting stop
+      			path_compat.stops.push_back(atoi(tmpAlightings[ind].substr(1,tmpAlightings[ind].length()-1).c_str()));
+      			path_compat.trips.push_back(tmpTrips.size() > ind+1 ? -102 : -101); // transfer if more trips, or egress
+      		}
+      	} else {
+			// destination to origin
+			for (int ind = tmpAlightings.size()-1; ind >= 0; --ind) {
+				// alighting stop
+      			path_compat.stops.push_back(atoi(tmpAlightings[ind].substr(1,tmpAlightings[ind].length()-1).c_str()));
+      			path_compat.trips.push_back(atoi(tmpTrips[ind].substr(1,tmpTrips[ind].length()-1).c_str()));
+      			// boarding stop
+      			path_compat.stops.push_back(atoi(tmpBoardings[ind].substr(1,tmpBoardings[ind].length()-1).c_str()));
+      			path_compat.trips.push_back(tmpTrips.size() > ind+1 ? -102 : -100); // transfer if more trips, or access
+			}
+      	}
+      	pathCompatMap[path_compat] = pathIter->first;
+
         routeComb = "";
         tripComb = "";
         NTR = tmpTrips.size() - 1;
-        IWT = tripSet[tmpTrips[0]]->getSchDepartureByStop(tmpBoardings[0]) - atof(tmpWalkings[0].c_str()) - atof(tmpStartTime.c_str());
-        IWT = roundf(IWT * 100) / 100;
+        // IWT = tripSet[tmpTrips[0]]->getSchDepartureByStop(tmpBoardings[0]) - atof(tmpWalkings[0].c_str()) - atof(tmpStartTime.c_str());
+        // IWT = roundf(IWT * 100) / 100;
+        IWT = 0; // lmz - is this false sometimes?
         IVT = 0;
         TRT = 0;
         ACD = atof(tmpWalkings[0].c_str());
@@ -570,7 +639,8 @@ void    passenger::analyzePaths(){
         if(passengerTourHalf==1){
             ScDelay = passengerPAT - passengerPAT; //should be fixed
         }else{
-            ScDelay = atof(tmpStartTime.c_str()) - passengerPDT;
+            // ScDelay = atof(tmpStartTime.c_str()) - passengerPDT;
+            ScDelay = start_time - passengerPDT;
         }
         FARE = 0;
         pathCapacity[(*pathIter).first] = 1;
@@ -612,15 +682,18 @@ void    passenger::analyzePaths(){
                 }
             }
         }
-        IVT = roundf(IVT * 100) / 100;
+        // IVT = roundf(IVT * 100) / 100;
         tmpUtility = inVehTimeEqv*IVT + waitingEqv*(IWT+TRT) + originWalkEqv*ACD + destinationWalkEqv*EGD + transferWalkEqv*TRD + transferPenalty*NTR + scheduleDelayEqv*ScDelay + 60*FARE/VOT;
-        tmpUtility = roundf(tmpUtility * 100) / 100;
+        // tmpUtility = roundf(tmpUtility * 100) / 100;
         pathUtility[(*pathIter).first] = tmpUtility;
+        if (trace) {
+        	cout << "   IVT="<< IVT << "; IWT=" << IWT << "; TRT=" << TRT << "; ACD=" << ACD << "; EGD=" << EGD << "; TRD=" << TRD << "; NTR=" << NTR << "; scDelay=" << ScDelay << "; fare=" << FARE << endl;
+			cout << "   pathUtility=" << tmpUtility << "; pathCapacity=" << pathCapacity[pathIter->first] << endl; }
         //cout	<<passengerId.substr(1,99)<<"\t"<<(*pathIter).second<<"\t"<<pathUtility[(*pathIter).first];
         //cout  <<"\t"<<NTR<<"\t"<<IWT<<"\t"<<IVT<<"\t"<<TRT<<"\t"<<ACD<<"\t"<<EGD<<"\t"<<TRD<<"\t"<<FARE<<endl;
     }
 }
-string  passenger::assignPath(){
+string  passenger::assignPath(bool trace){
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
     double          tmpLogsum;
 	vector<string>	tmpAlternatives;
@@ -657,16 +730,19 @@ string  passenger::assignPath(){
     //calculate the probability of each alternative
 	j=-1;
 	tmpMaxProb = 0;
-	for(pathIter2=pathUtility.begin();pathIter2!=pathUtility.end();pathIter2++){
-        if(pathCapacity[(*pathIter2).first]>0){
-            tmpAltProb = int(1000000*(exp(-theta*(*pathIter2).second))/tmpLogsum);
+	// for(pathIter2=pathUtility.begin();pathIter2!=pathUtility.end();pathIter2++){
+    for (map<PathCompat, string, struct passenger::PathCompatCompare>::iterator cpi = pathCompatMap.begin(); cpi != pathCompatMap.end(); ++cpi){
+    	string path_string = cpi->second;
+
+        if(pathCapacity[path_string]>0){
+            tmpAltProb = int(1000000*(exp(-theta*pathUtility[path_string]))/tmpLogsum);
             if(tmpAltProb < 1){
                 continue;
             }
             j++;
             if(j>0)	tmpAltProb = tmpAltProb + tmpAltProbabilities[j-1];
 
-            tmpAlternatives.push_back((*pathIter2).first);
+            tmpAlternatives.push_back(path_string);
             tmpAltProbabilities.push_back(tmpAltProb);
             tmpMaxProb = tmpAltProb;
         }
@@ -676,8 +752,16 @@ string  passenger::assignPath(){
 		return "-101";
 	}
 
+	if (trace) {
+		for (j=0;j<tmpAlternatives.size();j++) {
+			cout << "  j=" << j << "; prob=" << tmpAltProbabilities[j] << "; tmpAlternatives=" << tmpAlternatives[j] << endl;
+		}
+	}
+
     //select an alternative
-	tmpRandNum = rand()%tmpMaxProb;
+	tmpRandNum = rand();
+    if (trace) { cout << "  tmpRandNum=" << tmpRandNum << " -> " << tmpRandNum%tmpMaxProb << endl; }
+	tmpRandNum = tmpRandNum%tmpMaxProb;
 	for(j=0;j<tmpAlternatives.size();j++){
 		if(tmpRandNum <= tmpAltProbabilities[j]){
 			assignedPath = tmpAlternatives[j];

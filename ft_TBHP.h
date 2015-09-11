@@ -834,7 +834,9 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassengersFlag, int _numThreads){
 	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;
-    
+	list<passenger*>::iterator        	tmpPassengerListIter;
+	string                              tracePassengerId("p11");
+
     map<string,int>						tmpPathSet;
 	map<string,int>::iterator			tmpPathSetIter;
 
@@ -858,21 +860,18 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 	startTime = clock()*1.0/CLOCKS_PER_SEC;
 	tmpNumPassengers = passengerSet.size();
 	tmpNumPaths = 0;
-	for(k=0;k<tmpNumPassengers;k++){
+	// lmz: process all passengers without assuming passenger Id is unique
+	for(tmpPassengerListIter=passengerList.begin();tmpPassengerListIter!=passengerList.end();tmpPassengerListIter++){
 		int									threadId, tmpNumIterations, tmpTourHalf, tmpStatus, n;
 		string								tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
 		double								tmpPDT, tmpPAT;
 		passenger*							passengerPntr;
-		map<string,passenger*>::iterator	tmpPassengerIter;
 
 		threadId = 0;
-		tmpPassengerIter = passengerSet.begin();
-		advance(tmpPassengerIter, k);
-		if(tmpPassengerIter==passengerSet.end())	continue;
 
-		tmpPassengerId = (*tmpPassengerIter).first;
-		passengerPntr = NULL;
-		passengerPntr = passengerSet[tmpPassengerId];
+		passengerPntr = *tmpPassengerListIter;
+		tmpPassengerId = passengerPntr->getPassengerId();
+
 		tmpOriginTaz =passengerPntr->getOriginTAZ();
 		tmpDestinationTaz = passengerPntr->getDestinationTAZ();
 		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end())	continue;
@@ -885,8 +884,8 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
                 continue;
             }else if(tmpStatus==4){
                 passengerPntr->setAssignedPath("");
-                passengerPntr->analyzePaths();
-                tmpPath = passengerPntr->assignPath();
+                passengerPntr->analyzePaths(tracePassengerId == tmpPassengerId);
+                tmpPath = passengerPntr->assignPath(tracePassengerId == tmpPassengerId);
                 if(tmpPath!="-101"){
                     passengerPntr->setAssignedPath(tmpPath);
                     tmpNumPaths++;
@@ -904,9 +903,13 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 		tmpTourHalf = passengerPntr->getTourHalf();
 		tmpPathSet.clear();
         if (tmpTourHalf==1){
-            tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff);
+            tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff, tracePassengerId == tmpPassengerId);
+   			passengerPntr->setRandSeed();
             for (n=1;n<=1000;n++){
-                tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT);
+                tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT, tracePassengerId == tmpPassengerId);
+                if (tracePassengerId == tmpPassengerId) {
+                	cout << "Found path " << n << " " << tmpPath << endl;
+                }
                 if(tmpPath!="-101"){
                     tmpPathSetIter = tmpPathSet.find(tmpPath);
                     if (tmpPathSetIter==tmpPathSet.end())
@@ -918,9 +921,13 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
                 }
             }
 		}else{
-            tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff);
+            tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff, tracePassengerId == tmpPassengerId);
+   			passengerPntr->setRandSeed();
             for (n=1;n<=1000;n++){
-                tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT);
+                tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT, tracePassengerId == tmpPassengerId);
+                if (tracePassengerId == tmpPassengerId) {
+                	cout << "Found path " << n << " " << tmpPath << endl;
+                }
                 if(tmpPath!="-101"){
                     tmpPathSetIter = tmpPathSet.find(tmpPath);
                     if (tmpPathSetIter==tmpPathSet.end())
@@ -932,19 +939,19 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
                 }
             }
 		}
-        
         if(_printPassengersFlag==1){
             for(tmpPathSetIter=tmpPathSet.begin();tmpPathSetIter!=tmpPathSet.end();tmpPathSetIter++){
                 outFile <<tmpPassengerId.substr(1,99)<<"\t"<<tmpOriginTaz.substr(1,99)<<"\t"<<tmpDestinationTaz.substr(1,99)<<"\t"<<(*tmpPathSetIter).second<<"\t"<<(*tmpPathSetIter).first<<endl;
             }
         }
 
-        passengerPntr->analyzePaths();
-        tmpPath = passengerPntr->assignPath();
+        passengerPntr->analyzePaths(tracePassengerId == tmpPassengerId);
+        tmpPath = passengerPntr->assignPath(tracePassengerId == tmpPassengerId);
 		if(tmpPath!="-101"){
 			passengerPntr->setAssignedPath(tmpPath);
 			tmpNumPaths++;
 		}
+		cout << "passenger " << tmpPassengerId << "; numIter " << tmpNumIterations << "; PAT/PDT " << tmpPAT << "/" << tmpPDT << "; path = [" << tmpPath << "]" << endl;
 
         if(k%max(min(tmpNumPassengers/10,1000),10)==0){
             endTime = clock()*1.0/CLOCKS_PER_SEC;
