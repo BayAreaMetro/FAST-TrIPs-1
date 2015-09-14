@@ -218,7 +218,7 @@ int		readTransfers(){
 		tmpStopId = "s";
 		tmpStopId.append(tokens[0]);
 		stopSet[tmpStopId]->attachTransfer(tmpIn);
-		transferTimes[tmpStopId+",s"+tokens[1]] = atof(tokens[2].c_str())/3.0*60;
+		transferTimes[tmpStopId+",s"+tokens[1]] = 60*atof(tokens[2].c_str())/3.0;
 		numTransfers++;
 	}
 	inFile.close();

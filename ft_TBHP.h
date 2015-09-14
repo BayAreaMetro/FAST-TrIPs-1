@@ -534,7 +534,7 @@ string		getForwardElementaryPath(string _destination, double _PAT, bool trace){
 	tmpCurrentStop = tokens[0];
 	tmpEndTime = atof(tokens[1].c_str())/100;
 	tmpAccessLink = _destination + "," + tmpCurrentStop;
-    sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
+    sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]+0.5));
     tmpIn = string(chr);
     tmpStrLen = tmpIn.length();
 	tmpWalkingTimes = tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
@@ -571,7 +571,7 @@ string		getForwardElementaryPath(string _destination, double _PAT, bool trace){
 		}
 		if(tmpCurrentTrip=="Access"){
 			tmpAccessLink = tmpNewStop + "," + tmpCurrentStop;		
-            sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
+            sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]+0.5));
             tmpIn = string(chr);
 			tmpStrLen = tmpIn.length();
 			tmpWalkingTimes = tmpIn.substr(max(0,tmpStrLen-2),2) + "," + tmpWalkingTimes;
@@ -595,7 +595,7 @@ string		getForwardElementaryPath(string _destination, double _PAT, bool trace){
 			return tmpPath;
 		}else if(tmpCurrentTrip=="Transfer"){
 			tmpTransferLink = tmpCurrentStop + "," + tmpNewStop;
-            sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]));
+            sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]+0.5));
             tmpIn = string(chr);
 			tmpStrLen = tmpIn.length();
 			tmpWalkingTimes = tmpIn.substr(max(0,tmpStrLen-2),2) + "," + tmpWalkingTimes;
@@ -652,7 +652,7 @@ string		getBackwardElementaryPath(string _origin, double _PDT, bool trace){
 	tmpPath = tmpPath + tmpStr.substr(max(0,tmpStrLen-2),2);
     
     tmpAccessLink = _origin + "," + tmpCurrentStop;
-	sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
+	sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]+0.5));
     tmpIn = string(chr);
     tmpStrLen = tmpIn.length();
 	tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
@@ -702,7 +702,7 @@ string		getBackwardElementaryPath(string _origin, double _PDT, bool trace){
 		}
 		if(tmpCurrentTrip=="Egress"){
 			tmpAccessLink = tmpNewStop + "," + tmpCurrentStop;		
-			sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
+			sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]+0.5));
             tmpIn = string(chr);
             tmpStrLen = tmpIn.length();
             tmpWalkingTimes = tmpWalkingTimes + "," + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
@@ -720,7 +720,7 @@ string		getBackwardElementaryPath(string _origin, double _PDT, bool trace){
 			return tmpPath;
 		}else if(tmpCurrentTrip=="Transfer"){
 			tmpTransferLink = tmpCurrentStop + "," + tmpNewStop;
-			sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]));
+			sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]+0.5));
             tmpIn = string(chr);
             tmpStrLen = tmpIn.length();
 			tmpWalkingTimes = tmpWalkingTimes + "," + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
