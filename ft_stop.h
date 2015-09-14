@@ -36,6 +36,8 @@ limitations under the License.
 
 using namespace std;
 double		inVehTimeEqv, waitingEqv, originWalkEqv, destinationWalkEqv, transferWalkEqv, transferPenalty, scheduleDelayEqv, fare, VOT, theta, capacityConstraint;
+string tracePassengerId;
+
 map<string,double>		availableCapacity;
 map<string,int>		availableCapacity2;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

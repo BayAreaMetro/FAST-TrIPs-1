@@ -35,6 +35,7 @@ int		iterationFlag,	    	//{1, 2, ...}
 		skimStartTime,			//[0, 1440]
 		skimEndTime				//[0, 1440]
 		;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 void	readParameters(){
 	string			tmpIn, buf;
@@ -157,6 +158,10 @@ void	readRouteChoiceModel(){
 	VOT = atof(tokens[8].c_str());
 	theta = atof(tokens[9].c_str());
 	capacityConstraint = atoi(tokens[10].c_str());
+    if (tokens.size() > 10) {
+        tracePassengerId = tokens[11];
+        cout << "Tracing passenger " << tracePassengerId << endl;
+    }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 void		passengerAssignment(){

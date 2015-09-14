@@ -752,7 +752,6 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;;
 	list<passenger*>::iterator        	tmpPassengerListIter;
-	string                              tracePassengerId("p1454412");
 
 	numThreads = _numThreads;
 	parallelizeStops(numThreads);
@@ -835,7 +834,6 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;
 	list<passenger*>::iterator        	tmpPassengerListIter;
-	string                              tracePassengerId("p11");
 
     map<string,int>						tmpPathSet;
 	map<string,int>::iterator			tmpPathSetIter;

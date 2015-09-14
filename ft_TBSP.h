@@ -689,7 +689,6 @@ int	disaggregateDeterministicAssignment(int _iter, int _timeBuff, int _numThread
 	int								k, numThreads, tmpNumPassengers, tmpNumPaths;
     double                          startTime, endTime, cpuTime;
     list<passenger*>::iterator      tmpPassengerListIter;
-    string                          tracePassengerId("p11");
 
 	numThreads = _numThreads;
 	parallelizeStops(numThreads);
