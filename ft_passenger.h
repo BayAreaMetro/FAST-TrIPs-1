@@ -739,7 +739,13 @@ string  passenger::assignPath(bool trace){
     	string path_string = cpi->second;
 
         if(pathCapacity[path_string]>0){
-            tmpAltProb = int(1000000*(exp(-theta*pathUtility[path_string]))/tmpLogsum);
+        	if (trace) {
+        		cout << "  prob " << std::setfill(' ') << std::setw(8) << (exp(-theta*pathUtility[path_string]))/tmpLogsum;
+        		cout << " -> " << std::setw(8) << int(RAND_MAX*(exp(-theta*pathUtility[path_string]))/tmpLogsum);
+        		cout << " cost " << std::setw(8) << pathUtility[path_string];
+        		cout << " ==== " << path_string << endl;
+        	}
+            tmpAltProb = int(RAND_MAX*(exp(-theta*pathUtility[path_string]))/tmpLogsum);
             if(tmpAltProb < 1){
                 continue;
             }

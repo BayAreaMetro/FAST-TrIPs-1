@@ -344,7 +344,7 @@ string		taz::getForwardAssignedAlternative(double _departureTime, bool trace=fal
 	tmpMaxProb = 0;
 	for(i=0;i<tazArrivals.size();i++){
 		if(tazArrivals[i] > _departureTime)		continue;
-		tmpAltProb = int(1000*exp(-theta*tazCosts[i])/exp(-theta*tazStrategyLebel));
+		tmpAltProb = int(RAND_MAX*exp(-theta*tazCosts[i])/exp(-theta*tazStrategyLebel));
 		if(tmpAltProb < 1)		continue;
 		j++;
 		if(j>0)			tmpAltProb = tmpAltProb + tmpAltProbabilities[j-1];
@@ -381,7 +381,7 @@ string		taz::getBackwardAssignedAlternative(double _arrivalTime, bool trace=fals
 	tmpMaxProb = 0;
 	for(i=0;i<tazDepartures.size();i++){
 		if(tazDepartures[i] < _arrivalTime)		continue;
-		tmpAltProb = int(1000*exp(-theta*tazCosts[i])/exp(-theta*tazStrategyLebel));
+		tmpAltProb = int(RAND_MAX*exp(-theta*tazCosts[i])/exp(-theta*tazStrategyLebel));
 		if(tmpAltProb < 1)		continue;
 		j++;
 		if(j>0)			tmpAltProb = tmpAltProb + tmpAltProbabilities[j-1];

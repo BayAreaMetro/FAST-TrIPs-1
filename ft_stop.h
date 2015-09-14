@@ -680,7 +680,7 @@ string		stop::getForwardAssignedAlternative(double _departureTime, string _lastT
 			//cout<<"4";
 			continue;
 		}
-		tmpAltProb = int(1000*(exp(-theta*stopCosts[i])/tmpLogsum));
+		tmpAltProb = int(RAND_MAX*(exp(-theta*stopCosts[i])/tmpLogsum));
 		if(tmpAltProb < 1){
 			//cout<<"5";
 			continue;
@@ -755,7 +755,7 @@ string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTr
 			//cout<<"4";
 			continue;
 		}
-		tmpAltProb = int(1000*(exp(-theta*stopCosts[i])/tmpLogsum));
+		tmpAltProb = int(RAND_MAX*(exp(-theta*stopCosts[i])/tmpLogsum));
 		if(tmpAltProb < 1){
 			//cout<<"5";
 			continue;
