@@ -608,9 +608,11 @@ void    passenger::analyzePaths(bool trace){
       			// boarding stop
       			path_compat.stops.push_back(atoi(tmpBoardings[ind].substr(1,tmpBoardings[ind].length()-1).c_str()));
       			path_compat.trips.push_back(atoi(tmpTrips[ind].substr(1,tmpTrips[ind].length()-1).c_str()));
-      			// alighting stop
-      			path_compat.stops.push_back(atoi(tmpAlightings[ind].substr(1,tmpAlightings[ind].length()-1).c_str()));
-      			path_compat.trips.push_back(tmpTrips.size() > ind+1 ? -102 : -101); // transfer if more trips, or egress
+      			// alighting stop/transfer if differs from next boarding
+      			if (ind + 1 < tmpBoardings.size() && tmpAlightings[ind] != tmpBoardings[ind+1]) {
+	      			path_compat.stops.push_back(atoi(tmpAlightings[ind].substr(1,tmpAlightings[ind].length()-1).c_str()));
+    	  			path_compat.trips.push_back(tmpTrips.size() > ind+1 ? -102 : -101); // transfer if more trips, or egress
+    	  		}
       		}
       	} else {
 			// destination to origin
@@ -618,9 +620,11 @@ void    passenger::analyzePaths(bool trace){
 				// alighting stop
       			path_compat.stops.push_back(atoi(tmpAlightings[ind].substr(1,tmpAlightings[ind].length()-1).c_str()));
       			path_compat.trips.push_back(atoi(tmpTrips[ind].substr(1,tmpTrips[ind].length()-1).c_str()));
-      			// boarding stop
-      			path_compat.stops.push_back(atoi(tmpBoardings[ind].substr(1,tmpBoardings[ind].length()-1).c_str()));
-      			path_compat.trips.push_back(tmpTrips.size() > ind+1 ? -102 : -100); // transfer if more trips, or access
+      			// boarding stop/transfer if differs from next alighting
+      			if (ind - 1 >= 0 && tmpBoardings[ind] != tmpAlightings[ind-1]) {
+	      			path_compat.stops.push_back(atoi(tmpBoardings[ind].substr(1,tmpBoardings[ind].length()-1).c_str()));
+	      			path_compat.trips.push_back(tmpTrips.size() > ind+1 ? -102 : -100); // transfer if more trips, or access
+	      		}
 			}
       	}
       	pathCompatMap[path_compat] = pathIter->first;
