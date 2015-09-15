@@ -664,7 +664,8 @@ void    passenger::analyzePaths(bool trace){
             if(tripSet[tmpTrips[n]]->getSchArrivalByStop(tmpAlightings[n]) - tripSet[tmpTrips[n]]->getSchDepartureByStop(tmpBoardings[n]) < 0){
             	cout <<tripSet[tmpTrips[n]]->getSchArrivalByStop(tmpAlightings[n]) - tripSet[tmpTrips[n]]->getSchDepartureByStop(tmpBoardings[n])<<endl;
             }
-            if(n!=0 && n!=tmpTrips.size()-1){
+            // if transfers, then there will be 1 more walk segments than trips so the index works
+            if(n!=0){
                 TRT = TRT + tripSet[tmpTrips[n]]->getSchDepartureByStop(tmpBoardings[n]) - tripSet[tmpTrips[n-1]]->getSchArrivalByStop(tmpAlightings[n-1]) - atof(tmpWalkings[n].c_str());
                 TRD = TRD + atof(tmpWalkings[n].c_str());
             }
