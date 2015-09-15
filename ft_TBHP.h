@@ -519,6 +519,10 @@ string		getForwardElementaryPath(string _destination, double _PAT, bool trace){
 	vector<string>		tokens;
 	char				chr[99];
 
+	if (trace) {
+		cout << "TRACE" << endl;
+	}
+
 	tmpIn = tazSet[_destination]->getForwardAssignedAlternative(1800, trace);
 	// cout << "tmpIn = [" << tmpIn << "]" << endl;
 	if(tmpIn=="-101"){
@@ -578,7 +582,7 @@ string		getForwardElementaryPath(string _destination, double _PAT, bool trace){
 			if(tmpStrLen<2)				tmpWalkingTimes = "0" + tmpWalkingTimes;
 			tmpWalkingTimes = tmpIn.substr(0,max(0,tmpStrLen-2)) + "." + tmpWalkingTimes;
             tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
-            sprintf(chr,"%d",int(100*tmpStartTime));
+            sprintf(chr,"%d",int(100*tmpStartTime+0.5));
             tmpStr = string(chr);
 			tmpStrLen = tmpStr.length();
 			tmpPath = tmpStr.substr(0,max(0,tmpStrLen-2)) + ".";
@@ -691,14 +695,13 @@ string		getBackwardElementaryPath(string _origin, double _PDT, bool trace){
 			tmpFirstTrip = tmpCurrentTrip;
 		}
 		if(i==1){
-            /*tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
-            sprintf(chr,"%d",int(100*tmpStartTime));
+            tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
+            sprintf(chr,"%d",int(100*tmpStartTime+0.5));
             tmpIn = string(chr);
-            tmpStrLen = tmpStr.length();
-			tmpPath = tmpStr.substr(0,max(0,tmpStrLen-2)) + ".";
-			//cout <<tmpStartTime<<"\t"<<chr<<"\t"<<tmpIn<<"\t"<<tmpStrLen<<"\t"<<tmpPath<<"\t";
+            tmpStrLen = tmpIn.length();
+			tmpPath = tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
             if(tmpStrLen<2)			tmpPath = tmpPath + "0";
-			tmpPath = tmpPath + tmpStr.substr(max(0,tmpStrLen-2),2);*/
+			tmpPath = tmpPath + tmpIn.substr(max(0,tmpStrLen-2),2);
 		}
 		if(tmpCurrentTrip=="Egress"){
 			tmpAccessLink = tmpNewStop + "," + tmpCurrentStop;		
@@ -922,7 +925,7 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
             tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff, tracePassengerId == tmpPassengerId);
    			passengerPntr->setRandSeed();
             for (n=1;n<=1000;n++){
-                tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT, tracePassengerId == tmpPassengerId);
+                tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT, (tracePassengerId == tmpPassengerId) && (n==465));
                 if (tracePassengerId == tmpPassengerId) {
                 	cout << "Found path " << n << " " << tmpPath << endl;
                 }
